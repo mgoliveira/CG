@@ -21,6 +21,8 @@
 #include <armadillo>
 
 float 	dz = 45,
+		dx = 0,
+		dy = 0,
 		theta = 0,
 		phi=0,
 		raio = 45,
@@ -32,6 +34,7 @@ float 	dz = 45,
 		lastPos[3] = {0.0, 0.0, 0.0};
 
 bool isEnableTrackBall = false,
+	 isViewPrincipal = true,
 	 isBS = true;
 
 GLfloat Transform[16] = {1.0f,  0.0f,  0.0f,  0.0f,
@@ -61,8 +64,8 @@ void init(){
 	glLoadIdentity();
 	glEnable(GL_DEPTH_TEST);
 
-	objeto1.read_ply("airplane.ply"); // Ler a malha a ser ajustada a referência
-	objeto2.read_ply("airplane.ply"); // Ler a malha referência
+	objeto1.read_ply("b10_low.ply"); // Ler a malha a ser ajustada a referência
+	objeto2.read_ply("b11_low.ply"); // Ler a malha referência
 
 	matrizes = ICP(objeto1, objeto2, 0.001); // Chama a função ICP. O último parâmetro é a torelância do ajuste
 }
@@ -71,50 +74,88 @@ void display(void){
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	float dx = raio*cos(phi)*sin(theta);
-	float dy = raio*sin(phi)*sin(theta);
+	dx = raio*cos(phi)*sin(theta);
+	dy = raio*sin(phi)*sin(theta);
 	dz = raio*cos(theta);
 
-	glLoadIdentity();
-	gluLookAt(dx, dy, dz, 0.0, 0.0, 0.0, 0,1,0);
-
-	glColor3f(0.0, 0.0, 0.0);
-
-	grid();
-
-	axe();
-
-	glMultMatrixf( (GLfloat *) Transform);
-
-	glPushMatrix();
-
-	glRotatef(*(matrizes.begin())[0]*180/M_PI, 1, 0, 0);
-	glRotatef(*(matrizes.begin())[1]*180/M_PI, 0, 1, 0);
-	glRotatef(*(matrizes.begin())[2]*180/M_PI, 0, 0, 1);
-	glTranslatef(-ctoA[0], -ctoA[1], -ctoA[2]);
-	glTranslatef(*(matrizes.begin() + 1)[0], *(matrizes.begin() + 1)[1], *(matrizes.begin() + 1)[2]);
-	glScalef(10.0, 10.0, 10.0);
-	objeto1.draw_wire();
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(-ctoB[0], -ctoB[1], -ctoB[2]);
-	glScalef(10.0, 10.0, 10.0);
-	objeto2.draw_wire();
-	glPopMatrix();
-
-	if(isBS){
-		glPushMatrix();
-		glScalef(scl, scl, scl);
-		glTranslatef(dlx, dly , dlz);
-		boudingSphere();
-		glPopMatrix();
+	if(isViewPrincipal == true){
+		glLoadIdentity();
+		gluLookAt(dx, dy, dz, 0.0, 0.0, 0.0, 0,1,0);
+		viewMesh();
+	}
+	else{
+		multiView();
 	}
 
 	glutSwapBuffers();
 
 }
 
+void multiView(){
+
+	glViewport(0, 0, glutGet(GLUT_WINDOW_WIDTH)/2, glutGet(GLUT_WINDOW_HEIGHT)/2);
+	glLoadIdentity();
+	gluLookAt(0.0, 0.0, -dz, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+	viewMesh();
+
+	glViewport(glutGet(GLUT_WINDOW_WIDTH)/2, 0, glutGet(GLUT_WINDOW_WIDTH)/2, glutGet(GLUT_WINDOW_HEIGHT)/2);
+	glLoadIdentity();
+	glColor3f(0.1, 0.2, 0.2);
+	gluLookAt(0.0, 0.0, dz, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+	viewMesh();
+	glColor3f(0.0, 0.0, 0.0);
+
+	glViewport(0, glutGet(GLUT_WINDOW_HEIGHT)/2, glutGet(GLUT_WINDOW_WIDTH)/2, glutGet(GLUT_WINDOW_HEIGHT)/2);
+	glLoadIdentity();
+	gluLookAt(0.0, dz, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0);
+	viewMesh();
+
+	glViewport(glutGet(GLUT_WINDOW_WIDTH)/2, glutGet(GLUT_WINDOW_HEIGHT)/2, glutGet(GLUT_WINDOW_WIDTH)/2, glutGet(GLUT_WINDOW_HEIGHT)/2);
+	glLoadIdentity();
+	gluLookAt(0.0, -dz, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0);
+	viewMesh();
+
+
+}
+
+void viewMesh(){
+
+		if(isViewPrincipal == true) {
+			glColor3f(0.0, 0.0, 0.0);
+		}
+
+		grid();
+
+		axe();
+
+		glMultMatrixf( (GLfloat *) Transform);
+
+		glPushMatrix();
+
+		glRotatef(*(matrizes.begin())[0]*180/M_PI, 1, 0, 0);
+		glRotatef(*(matrizes.begin())[1]*180/M_PI, 0, 1, 0);
+		glRotatef(*(matrizes.begin())[2]*180/M_PI, 0, 0, 1);
+		glTranslatef(-ctoA[0], -ctoA[1], -ctoA[2]);
+		glTranslatef(*(matrizes.begin() + 1)[0], *(matrizes.begin() + 1)[1], *(matrizes.begin() + 1)[2]);
+		glScalef(10.0, 10.0, 10.0);
+		objeto1.draw_wire();
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(-ctoB[0], -ctoB[1], -ctoB[2]);
+		glScalef(10.0, 10.0, 10.0);
+		objeto2.draw_wire();
+		glPopMatrix();
+
+		if(isBS){
+			glPushMatrix();
+			glScalef(scl, scl, scl);
+			glTranslatef(dlx, dly , dlz);
+			boudingSphere();
+			glPopMatrix();
+		}
+
+}
 void boudingSphere(){
 
 	float k = 0;
@@ -248,6 +289,13 @@ void keyboard(unsigned char key, int x, int y){
 			isBS = false;
 		}else
 			isBS = true;
+		break;
+	case 'v':
+		if(isViewPrincipal){
+			isViewPrincipal = false;
+		}else
+			isViewPrincipal = true;
+			reshape(glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
 		break;
 	case 'd':
 		theta = theta - 0.1;
@@ -709,8 +757,7 @@ vector<float*> ICP(CHE_L0 malha1, CHE_L0 malha2, float threshold){
 
 	bool ligado = true;
 
-	//float* centroideA = new float[3]();
-	//float* centroideB = new float[3]();
+	int i = 0;
 
 	while(!target){
 
@@ -762,6 +809,10 @@ vector<float*> ICP(CHE_L0 malha1, CHE_L0 malha2, float threshold){
 			error += dis(newponto, ponto);
 		}
 
+		cout << "Tentativa: " << i + 1 << endl;
+
+		i++;
+
 		error = error/(float) Mesh.size();
 
 		cout << "Erro: "<< abs(error - preverror) << endl;
@@ -788,6 +839,7 @@ vector<float*> ICP(CHE_L0 malha1, CHE_L0 malha2, float threshold){
 
 		cout << "Distancia entre as malhas: " << sqrt(dis(centA, centB))<< endl;
 
+		cout << endl;
 	}
 
 	vector<float*> result = vector<float*>();
