@@ -290,7 +290,7 @@ void keyboard(unsigned char key, int x, int y){
 		}else
 			isBS = true;
 		break;
-	case 'v':
+	case 'p':
 		if(isViewPrincipal){
 			isViewPrincipal = false;
 		}else
