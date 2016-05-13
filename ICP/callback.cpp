@@ -553,6 +553,8 @@ struct Node* CHEkdtree(CHE_L0 data){
 	return root;
 }
 
+//Constrói um novo Nó
+
 struct Node* newNod(float* arr)
 {
     struct Node* temp = new Node;
@@ -565,6 +567,8 @@ struct Node* newNod(float* arr)
 
     return temp;
 }
+
+//Determina onde será inserido na KdTree o novo ponto
 
 Node* insertR(Node* root, vector<float*> & dados, unsigned depth)
 {
@@ -604,6 +608,8 @@ Node* insertR(Node* root, vector<float*> & dados, unsigned depth)
 	return root;
 }
 
+//Calcula a distância entre dois pontos
+
 float dis( float* point1,  float* point2){
 	float dist = 0.0;
 	for(int i = 0; i < k; i++){
@@ -611,6 +617,8 @@ float dis( float* point1,  float* point2){
 	}
 	return dist;
 }
+
+//Determina o ponto mais próximo na KdTree
 
 float* neareast(Node *root, float* point, int depth) {
 
@@ -654,6 +662,8 @@ float* nearpoint(float* ponto, Node* KdTree){
 	return proximo;
 }
 
+//Converte matriz do Armadillo em Float
+
 float* ArmtoFloat( arma::mat Matrix, int rows, int cols) {
 
 	float* arr = new float[rows+cols]();
@@ -668,6 +678,8 @@ float* ArmtoFloat( arma::mat Matrix, int rows, int cols) {
 
 }
 
+// Converte a matriz de Rotação em Armadillo para Float
+
 float* ArmtoRot(arma::mat Matrix){
 
 	float* matriz = new float[3]();
@@ -678,6 +690,8 @@ float* ArmtoRot(arma::mat Matrix){
 
 	return matriz;
 }
+
+// Função ICP
 
 vector<float*> ICP(CHE_L0 malha1, CHE_L0 malha2, float threshold){
 
