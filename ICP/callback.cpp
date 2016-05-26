@@ -29,9 +29,6 @@ float 	dz = 45,
 		raio = 45,
 		best_dis = FLT_MAX,
 		scl = 10,
-		dlx = 0,
-		dly = 0,
-		dlz = 0,
 		lastPos[3] = {0.0, 0.0, 0.0};
 
 bool isEnableTrackBall = false,
@@ -59,8 +56,8 @@ void init(){
 	glLoadIdentity();
 	glEnable(GL_DEPTH_TEST);
 
-	objeto1.read_ply("./PlyFiles/b06_low.ply"); // Ler a malha a ser ajustada a referência
-	objeto2.read_ply("./PlyFiles/b07_low.ply"); // Ler a malha referência
+	objeto1.read_ply("./PlyFiles/b06_low.ply"); // Lê a malha a ser ajustada a referência
+	objeto2.read_ply("./PlyFiles/b07_low.ply"); // Lê a malha referência
 
 	ICP(objeto1, objeto2, 0.001); // Chama a função ICP. O último parâmetro é a torelância do ajuste
 }
@@ -294,29 +291,6 @@ void keyboard(unsigned char key, int x, int y){
 		break;
 	case '-':
 		scl = scl - 0.1;
-		break;
-	case '8':
-		dly = dly + 0.1;
-		break;
-	case '2':
-		dly = dly - 0.1;
-		break;
-	case '4':
-		dlx = dlx - 0.1;
-		break;
-	case '6':
-		dlx = dlx + 0.1;
-		break;
-	case '9':
-		dlz = dlz + 0.1;
-		break;
-	case '3':
-		dlz = dlz - 0.1;
-		break;
-	case '5':
-		dlx = 0;
-		dly = 0;
-		dlz = 0;
 		break;
 	}
 	glutPostRedisplay();
@@ -713,7 +687,7 @@ void ICP(CHE_L0 malha1, CHE_L0 malha2, float threshold){
 
 		R = reflection(R);
 
-		arma::mat T = translation(rotation(H), centA, centB);
+		arma::mat T = translation(R, centA, centB);
 
 		//Realização dos ajustes e determinação do novo erro
 
