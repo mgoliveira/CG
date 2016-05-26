@@ -43,18 +43,19 @@ arma::mat rotation(arma::mat );
 arma::mat translation(arma::mat ,  Vertex , Vertex );
 arma::mat reflection(arma::mat );
 float* nearpoint(float* , Node* );
-float median(CHE_L0 );
 float* VertexToFloat(CHE_L0 , int );
 float* centroid(vector<float*>);
 struct Node* kdtree(vector<float*>);
 struct Node* CHEkdtree(CHE_L0);
-vector<float*> ICP(CHE_L0, CHE_L0, float);
+void ICP(CHE_L0, CHE_L0, float);
 float* ArmtoFloat(arma::mat , int , int );
 float* ArmtoRot(arma::mat);
 vector<float*> CHEtoVector(CHE_L0 );
 float dis( float* ,  float* );
-
+void viewMesh();
+void multiView();
 void boudingSphere();
+
 
 Node* insertR(Node*, vector<float*>& , unsigned );
 

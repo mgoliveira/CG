@@ -19,6 +19,7 @@
 #include <iostream>
 #include "callback.hpp"
 #include <armadillo>
+#include <gsl/gsl_math.h>
 
 float 	dz = 45,
 		dx = 0,
@@ -46,12 +47,6 @@ GLfloat Transform[16] = {1.0f,  0.0f,  0.0f,  0.0f,
 CHE_L0 objeto1;
 CHE_L0 objeto2;
 
-float* ctoA = new float[3]();
-
-float* ctoB = new float[3]();
-
-vector<float*> matrizes;
-
 void init(){
 
 	glClearColor(0.3, 0.3, 0.3, 1.0);
@@ -64,10 +59,10 @@ void init(){
 	glLoadIdentity();
 	glEnable(GL_DEPTH_TEST);
 
-	objeto1.read_ply("b10_low.ply"); // Ler a malha a ser ajustada a referência
-	objeto2.read_ply("b11_low.ply"); // Ler a malha referência
+	objeto1.read_ply("./PlyFiles/b06_low.ply"); // Ler a malha a ser ajustada a referência
+	objeto2.read_ply("./PlyFiles/b07_low.ply"); // Ler a malha referência
 
-	matrizes = ICP(objeto1, objeto2, 0.001); // Chama a função ICP. O último parâmetro é a torelância do ajuste
+	ICP(objeto1, objeto2, 0.001); // Chama a função ICP. O último parâmetro é a torelância do ajuste
 }
 
 void display(void){
@@ -95,27 +90,25 @@ void multiView(){
 
 	glViewport(0, 0, glutGet(GLUT_WINDOW_WIDTH)/2, glutGet(GLUT_WINDOW_HEIGHT)/2);
 	glLoadIdentity();
-	gluLookAt(0.0, 0.0, -dz, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+	gluLookAt(0.0, 0.0, -45, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
 	viewMesh();
 
 	glViewport(glutGet(GLUT_WINDOW_WIDTH)/2, 0, glutGet(GLUT_WINDOW_WIDTH)/2, glutGet(GLUT_WINDOW_HEIGHT)/2);
 	glLoadIdentity();
 	glColor3f(0.1, 0.2, 0.2);
-	gluLookAt(0.0, 0.0, dz, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+	gluLookAt(0.0, 0.0, 45, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
 	viewMesh();
 	glColor3f(0.0, 0.0, 0.0);
 
 	glViewport(0, glutGet(GLUT_WINDOW_HEIGHT)/2, glutGet(GLUT_WINDOW_WIDTH)/2, glutGet(GLUT_WINDOW_HEIGHT)/2);
 	glLoadIdentity();
-	gluLookAt(0.0, dz, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0);
+	gluLookAt(0.0, 45, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0);
 	viewMesh();
 
 	glViewport(glutGet(GLUT_WINDOW_WIDTH)/2, glutGet(GLUT_WINDOW_HEIGHT)/2, glutGet(GLUT_WINDOW_WIDTH)/2, glutGet(GLUT_WINDOW_HEIGHT)/2);
 	glLoadIdentity();
-	gluLookAt(0.0, -dz, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0);
+	gluLookAt(0.0, -45, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0);
 	viewMesh();
-
-
 }
 
 void viewMesh(){
@@ -130,31 +123,21 @@ void viewMesh(){
 
 		glMultMatrixf( (GLfloat *) Transform);
 
-		glPushMatrix();
+		glColor3f(0.0, 0.0, 0.0);
 
-		glRotatef(*(matrizes.begin())[0]*180/M_PI, 1, 0, 0);
-		glRotatef(*(matrizes.begin())[1]*180/M_PI, 0, 1, 0);
-		glRotatef(*(matrizes.begin())[2]*180/M_PI, 0, 0, 1);
-		glTranslatef(-ctoA[0], -ctoA[1], -ctoA[2]);
-		glTranslatef(*(matrizes.begin() + 1)[0], *(matrizes.begin() + 1)[1], *(matrizes.begin() + 1)[2]);
-		glScalef(10.0, 10.0, 10.0);
+		glColor3f(1.0, 0.0, 0.0);
 		objeto1.draw_wire();
-		glPopMatrix();
 
-		glPushMatrix();
-		glTranslatef(-ctoB[0], -ctoB[1], -ctoB[2]);
-		glScalef(10.0, 10.0, 10.0);
+		glColor3f(0.0, 1.0, 0.0);
 		objeto2.draw_wire();
-		glPopMatrix();
 
 		if(isBS){
 			glPushMatrix();
 			glScalef(scl, scl, scl);
-			glTranslatef(dlx, dly , dlz);
+
 			boudingSphere();
 			glPopMatrix();
 		}
-
 }
 void boudingSphere(){
 
@@ -437,10 +420,11 @@ vector<float*> vectorDataICP(CHE_L0 malha, int num){
 
 	vector<float*> Mesh = vector<float*>() ;
 
-	for(int i = 0; i < num; i++){
-		Mesh.push_back(VertexToFloat(malha, i));
-	}
 
+	for(int i = 0; i < num; ++i){
+		Mesh.push_back(VertexToFloat(malha, i));
+
+	}
 	return Mesh;
 }
 
@@ -473,7 +457,7 @@ float* centroid( vector<float*> data){
 
 arma::mat covariance(vector<float*> datA, vector<float*> datB, float* centA,  float* centB){
 
-	arma::mat A(3,1), B(3,1), H(3,3);
+	arma::mat A(3,1), B(3,1), H(3,3), ca(3,1), cb(3,1);
 
 	H.zeros();
 	A.zeros();
@@ -491,28 +475,27 @@ arma::mat covariance(vector<float*> datA, vector<float*> datB, float* centA,  fl
 		B(1,0) = (float) (*itB)[1] - centB[1];
 		B(2,0) = (float) (*itB)[2] - centB[2];
 
+		H += A*B.t();
+
 		++itB;
 
-		H += A*B.t();
 	}
 
 	return H;
 }
 
-// Calcula a matriz de rotação
-
-arma::mat rotation(arma::mat H){
+arma::mat rotation(arma::mat G){
 
 	arma::mat U, V;
 	arma::vec s;
-
-	arma::mat Ha = H;
 
 	U.zeros();
 	V.zeros();
 	s.zeros();
 
-	arma::svd(U,s,V,Ha);
+	arma::svd(U,s,V,G);
+
+	arma::mat H = V*U.t();
 
 	return V*U.t();
 }
@@ -521,8 +504,7 @@ arma::mat rotation(arma::mat H){
 
 arma::mat translation( arma::mat R,  float* centA,  float* centB){
 
-	arma::mat CentA(3,1);
-	arma::mat CentB(3,1);
+	arma::mat CentA(3,1), CentB(3,1);
 
 	CentA.zeros();
 	CentB.zeros();
@@ -535,10 +517,7 @@ arma::mat translation( arma::mat R,  float* centA,  float* centB){
 	CentB(1,0) = centB[1];
 	CentB(2,0) = centB[2];
 
-	arma::mat T = -1*R*CentA + CentB;
-
-	return T;
-
+	return (-1.0)*R*CentA + CentB;
 }
 
 //Corrige a reflexão se houver
@@ -558,30 +537,16 @@ arma::mat reflection(arma::mat R){
 
 float* VertexToFloat(CHE_L0 malha, int i){
 
-	float* ponto = new float[3]();
+	float* ponto = new float[6]();
 
 	ponto[0] = malha.G(i).x();
 	ponto[1] = malha.G(i).y();
 	ponto[2] = malha.G(i).z();
+	ponto[3] = malha.G(i).nx();
+	ponto[4] = malha.G(i).ny();
+	ponto[5] = malha.G(i).nz();
 
 	return ponto;
-}
-
-//Constrói um vector a partir de uma malha CHE
-
-vector<float*> CHEtoVector(CHE_L0 malha){
-
-	vector<float*> malhaFloat = vector<float*>();
-
-	for(int i = 0; i < malha.nvert(); i++){
-		float* ponto = new float[3]();
-		ponto[0] = malha.G(i).x();
-		ponto[1] = malha.G(i).y();
-		ponto[2] = malha.G(i).z();
-		malhaFloat.push_back(ponto);
-	}
-
-	return malhaFloat;
 }
 
 //Constrói uma KdTree a partir de uma malha
@@ -660,8 +625,8 @@ Node* insertR(Node* root, vector<float*> & dados, unsigned depth)
 
 float dis( float* point1,  float* point2){
 	float dist = 0.0;
-	for(int i = 0; i < k; i++){
-		dist = dist + (point1[i]-point2[i])*(point1[i]-point2[i]);
+	for(int i = 0; i < k; ++i){
+		dist += (point1[i]-point2[i])*(point1[i]-point2[i]);
 	}
 	return dist;
 }
@@ -672,21 +637,19 @@ float* neareast(Node *root, float* point, int depth) {
 
 	int cd = depth % k;
 
-	float* ponto = root->point;
-
 	float dx = point[cd] - (root->point)[cd];
 
-	Node *near = dx <= 0 ? root->left  : root->right;
-	Node *far  = dx <= 0 ? root->right : root->left;
+	Node *near = dx < 0 ? root->left  : root->right;
+	Node *far  = dx < 0 ? root->right : root->left;
 
-	float* best = near == NULL ? root->point : neareast(near, point, depth + 1);
+	float* best = (near == NULL) ? root->point : neareast(near, point, depth + 1);
 
 	if(dis(root->point, point) < dis(best, point)){
 		best = root->point;
 	}
 
 	if(far != NULL){
-		if((root->point[cd] - point[cd]) < dis(best,point)){
+		if(pow((root->point[cd] - point[cd]),2) < dis(best,point)){
 			float* otherBest = neareast(far, point, depth + 1);
 			if(dis(otherBest, point) < dis(best, point)){
 				best = otherBest;
@@ -694,54 +657,19 @@ float* neareast(Node *root, float* point, int depth) {
 		}
 
 	}
-
 	return best;
-
 }
 
 //Determina o ponto mais próximo de um dado ponto
 
 float* nearpoint(float* ponto, Node* KdTree){
 
-	float* proximo = new float[3]();
-
-	proximo = neareast(KdTree, ponto,0);
-
-	return proximo;
-}
-
-//Converte matriz do Armadillo em Float
-
-float* ArmtoFloat( arma::mat Matrix, int rows, int cols) {
-
-	float* arr = new float[rows+cols]();
-
-	for(int i = 0; i < cols; ++i){
-		for(int j = 0; j < rows; ++j){
-			arr[i+j] = Matrix(j,i);
-		}
-	}
-
-	return arr;
-
-}
-
-// Converte a matriz de Rotação em Armadillo para Float
-
-float* ArmtoRot(arma::mat Matrix){
-
-	float* matriz = new float[3]();
-
-	matriz[0] = atan2(Matrix(2,1), Matrix(2,2));
-	matriz[1] = atan2(-1*Matrix(2,1),sqrt(pow(Matrix(2,1), 2)+ pow(Matrix(2,2), 2)));
-	matriz[2] = atan2(Matrix(1,0), Matrix(0,0));
-
-	return matriz;
+	return neareast(KdTree, ponto,0);
 }
 
 // Função ICP
 
-vector<float*> ICP(CHE_L0 malha1, CHE_L0 malha2, float threshold){
+void ICP(CHE_L0 malha1, CHE_L0 malha2, float threshold){
 
 	struct Node* rootA = NULL;
 
@@ -749,124 +677,96 @@ vector<float*> ICP(CHE_L0 malha1, CHE_L0 malha2, float threshold){
 
 	vector<float*> Mesh = vector<float*>();
 
-	Mesh =	vectorDataICP(malha1, malha1.nvert());
-
-	vector<float*> MeshAux = vector<float*>();
-
-	float error = 0.0;
-
-	float preverror = 0.0;
-
-	vector<float*> matchMesh = vector<float*>();
-
-	float* centA = new float[3]();
-
-	float* centB = new float[3]();
-
-	arma::mat R;
-
-	arma::mat T;
+	float error = 0.0, preverror = 0.0;
 
 	bool target = false;
 
-	bool ligado = true;
-
 	int i = 0;
+
+	Mesh = vectorDataICP(malha1, malha1.nvert());
 
 	while(!target){
 
+		vector<float*> MeshAux = vector<float*>();
+		vector<float*> matchMesh = vector<float*>();
+
 		for(vector<float*>::iterator it = Mesh.begin(); it != Mesh.end(); ++it){
 
-			float* ponto = new float[3]();
+			float* ponto = nearpoint(*it, rootA);
 
-			ponto = nearpoint(*it, rootA);
+			float d = dis(*it, ponto);
 
 			matchMesh.push_back(ponto);
 
-			preverror += dis(*it, ponto);
-
+			preverror += d;
 		}
 
 		preverror = preverror/(float) Mesh.size();
 
+		float* centA = centroid(Mesh);
 
-		centA =	centroid(Mesh);
-
-		centB = centroid(matchMesh);
-
-		if(ligado){
-			ctoA = centA;
-			ctoB = centB;
-		}
+		float* centB = centroid(matchMesh);
 
 		arma::mat H = covariance(Mesh, matchMesh, centA, centB);
 
-		R = rotation(H);
+		arma::mat R = rotation(H);
 
 		R = reflection(R);
 
-		T = translation(R, centA, centB);
+		arma::mat T = translation(rotation(H), centA, centB);
 
-		//Determinação do novo erro e realização dos ajustes
+		//Realização dos ajustes e determinação do novo erro
 
 		arma::mat newpoint(3,1);
-		newpoint.zeros();
+		arma::mat newnorma(3,1);
+		int j = 0;
+		newpoint.zeros(); newnorma.zeros();
 
 		for(vector<float*>::iterator it = Mesh.begin(); it != Mesh.end(); ++it){
-			float* newponto = new float[3]();
-			newpoint(0,0) = (*it)[0]; newpoint(1,0) = (*it)[1]; newpoint(2,0) = (*it)[2];
+
+			float* newponto = new float[6]();
+
+			newpoint(0,0) = (*it)[0] ; newpoint(1,0) = (*it)[1]; newpoint(2,0) = (*it)[2];
+			newnorma(0,0) = (*it)[3] ; newnorma(1,0) = (*it)[4]; newnorma(2,0) = (*it)[5];
+
 			newpoint = R*newpoint;
+			newnorma = R*newnorma;
 			newpoint = newpoint + T;
+			newnorma = newnorma + T;
+
+			objeto1.G(j).set_x(newpoint(0,0));objeto1.G(j).set_y(newpoint(1,0));objeto1.G(j).set_z(newpoint(2,0));
+			objeto1.G(j).set_nx(newnorma(0,0));objeto1.G(j).set_ny(newnorma(1,0));objeto1.G(j).set_nz(newnorma(2,0));
+
 			newponto[0] = newpoint(0,0);newponto[1] = newpoint(1,0);newponto[2] = newpoint(2,0);
+			newponto[3] = newnorma(0,0);newponto[4] = newnorma(1,0);newponto[5] = newnorma(2,0);
+
 			MeshAux.push_back(newponto);
+
 			float* ponto = nearpoint(newponto, rootA);
+
 			error += dis(newponto, ponto);
+
+			++j;
 		}
 
-		cout << "Tentativa: " << i + 1 << endl;
-
-		i++;
+		++i;
 
 		error = error/(float) Mesh.size();
 
-		cout << "Erro: "<< abs(error - preverror) << endl;
-
-		//Limpeza das malhas para inserção das novas
-
 		vector<float*> clean1 = vector<float*>();
-		vector<float*> clean2 = vector<float*>();
-		vector<float*> clean3 = vector<float*>();
 
 		Mesh.swap(clean1);
 
 		Mesh = MeshAux;
 
-		MeshAux.swap(clean2);
+		cout << "Tentativa: " << i + 1 << endl;
+		cout << "Erro: "<< abs(error - preverror) << endl;
+		cout << "Distancia media entre as malhas: " << sqrt(dis(centA, centB))<< endl;
+		cout << endl;
 
-		matchMesh.swap(clean3);
-
-		if (abs(error - preverror) < threshold){
+		if (abs(preverror - error) < threshold){
 			target = true;
 		}
-
-		ligado = false;
-
-		cout << "Distancia entre as malhas: " << sqrt(dis(centA, centB))<< endl;
-
-		cout << endl;
 	}
-
-	vector<float*> result = vector<float*>();
-
-	result.push_back(ArmtoRot(R));
-	result.push_back(ArmtoFloat(T,3,1));
-	result.push_back(centA);
-	result.push_back(centB);
-
-	delete(centA);
-	delete(centB);
 	delete(rootA);
-
-	return result;
-
 }
