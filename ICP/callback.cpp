@@ -446,7 +446,7 @@ arma::mat covariance(vector<float*> datA, vector<float*> datB, float* centA,  fl
 	for(vector<float*>::iterator itA = datA.begin(); itA != datA.end(); ++itA)
 	{
 		A(0,0) = (float) (*itA)[0] - centA[0];
-		A(1,0) = (float) (*itA)[1] - centA[1]+ 10;
+		A(1,0) = (float) (*itA)[1] - centA[1];
 		A(2,0) = (float) (*itA)[2] - centA[2];
 
 		B(0,0) = (float) (*itB)[0] - centB[0];
@@ -900,8 +900,8 @@ void ICPPointPlane(CHE_L0 malha1, CHE_L0 malha2, float threshold){
 
 		MeshA = NewMesh->Malha;
 
-		cout << "Tentativa: " << i + 1 << endl;
 		cout<<"######### ICP Ponto a Plano ########" << endl;
+		cout << "Tentativa: " << i + 1 << endl;
 		cout << "Erro: "<< abs(error - preverror) << endl;
 		cout << "Distancia media entre as malhas: " << sqrt(dis(centA, centB))<< endl;
 		cout << endl;
