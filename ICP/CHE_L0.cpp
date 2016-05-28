@@ -2,9 +2,9 @@
 * @file    CHE_L0.cpp
 * @author  Marcos Lage      <mlage@mat.puc-rio.br>
 * @author  Thomas Lewiner   <thomas.lewiner@polytechnique.org>
-* @author  Hélio  Lopes     <lopes@mat.puc-rio.br>
+* @author  Hï¿½lio  Lopes     <lopes@mat.puc-rio.br>
 * @author  Math Dept, PUC-Rio
-* @author  Lab Matmídia
+* @author  Lab Matmï¿½dia
 * @date    14/02/2006
 *
 * @brief  (Compact Half-Edge Structure - Level 0)
@@ -311,15 +311,15 @@ void CHE_L0::legalize_model (float *min, float *max)
     float tz = _G[i].z();
 
      tx -= c[0];
-    if(size != 0) tx /= .5*size;
+    if(size != 0) tx /= 0.05*size;
     _G[i].set_x(tx);
 
      ty -= c[1];
-    if(size != 0) ty /= .5*size;
+    if(size != 0) ty /= 0.05*size;
     _G[i].set_y(ty);
 
      tz -= c[2];
-    if(size != 0) tz /= .5*size;
+    if(size != 0) tz /= 0.05*size;
     _G[i].set_z(tz);
   }
 
@@ -370,7 +370,7 @@ void CHE_L0::draw_smooth()
 		const Vertex &v2 = G(V(r+1));
 		const Vertex &v3 = G(V(r+2));
 
-		glColor3f(0.2567,0.5,0.9);
+		//glColor3f(0.2567,0.5,0.9);
 
 		glBegin(GL_TRIANGLES);
 			glNormal3d(v1.nx(),  v1.ny(),  v1.nz());
@@ -399,7 +399,7 @@ void CHE_L0::draw_wire()
 	const Vertex &v2 = G(V(r+1));
 	const Vertex &v3 = G(V(r+2));
 
-	glColor3f(0.65,0.65,0.65);
+	//glColor3f(0.65,0.65,0.65);
     glBegin( GL_LINES );
 	    //---- e0 ----//
       glNormal3d(v1.nx(),  v1.ny(),  v1.nz());

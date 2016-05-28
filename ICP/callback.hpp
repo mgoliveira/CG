@@ -8,17 +8,22 @@
 #ifndef CALLBACK_HPP_
 #define CALLBACK_HPP_
 
+#include<vector>
+
 const int k = 3;
 
-struct Node
-{
-    float point[3];
+struct Node{
+    float point[6];
     Node *left, *right;
+};
+
+struct NewData{
+	std::vector<float*> Malha;
+	float erro;
 };
 
 #include "CHE_L0.hpp"
 #include <armadillo>
-//#include "kdtree.hpp"
 void reshape(int , int );
 void motion(int , int );
 void mouse(int , int , int , int );
@@ -47,7 +52,7 @@ float* VertexToFloat(CHE_L0 , int );
 float* centroid(vector<float*>);
 struct Node* kdtree(vector<float*>);
 struct Node* CHEkdtree(CHE_L0);
-void ICP(CHE_L0, CHE_L0, float);
+void ICPPointPoint(CHE_L0, CHE_L0, float);
 float* ArmtoFloat(arma::mat , int , int );
 float* ArmtoRot(arma::mat);
 vector<float*> CHEtoVector(CHE_L0 );
@@ -55,6 +60,10 @@ float dis( float* ,  float* );
 void viewMesh();
 void multiView();
 void boudingSphere();
+
+arma::mat PointToPlane(vector<float*> , vector<float*> );
+
+void ICPPointPlane(CHE_L0, CHE_L0, float);
 
 
 Node* insertR(Node*, vector<float*>& , unsigned );
