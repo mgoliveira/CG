@@ -61,6 +61,8 @@ void viewMesh();
 void multiView();
 void boudingSphere();
 
+void TransCent(CHE_L0 , CHE_L0 );
+
 arma::mat PointToPlane(vector<float*> , vector<float*> );
 
 void ICPPointPlane(CHE_L0, CHE_L0, float);

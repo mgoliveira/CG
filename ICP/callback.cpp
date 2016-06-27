@@ -60,6 +60,7 @@ void init(){
 	objeto1.read_ply("./PlyFiles/b01_low.ply"); // Lê a malha a ser ajustada a referência
 	objeto2.read_ply("./PlyFiles/b02_low_a.ply"); // Lê a malha referência
 
+	TransCent(objeto1, objeto2);
 	ICPPointPoint(objeto1, objeto2, 0.0001); // Chama a função ICP ponto a ponto. O último parâmetro é a torelância do ajuste
 	ICPPointPlane(objeto1, objeto2, 0.0004); // Chama a função ICP ponto a plano. O último parâmetro é a torelância do ajuste
 
@@ -781,6 +782,39 @@ NewData* NearPointOfMesh(vector<float*> Mesh, struct Node* root){
 	return dados;
 }
 
+//Ajuste inicial das malhas para evitar mínimo local
+
+void TransCent(CHE_L0 malha1, CHE_L0 malha2){
+
+	vector<float*> MeshA = vector<float*>();
+	MeshA = vectorDataICP(malha1, malha1.nvert());
+
+	vector<float*> MeshB = vector<float*>();
+	MeshB = vectorDataICP(malha2, malha2.nvert());
+
+	float* centA = centroid(MeshA);
+
+	float* centB = centroid(MeshB);
+
+	float* t = new float[3];
+
+	t[0] = centB[0] - centA[0]; t[1] = centB[1] - centA[1]; t[2] =  centB[2] - centA[2];
+
+	int j = 0;
+
+	for(vector<float*>::iterator it = MeshA.begin(); it != MeshA.end(); ++it){
+
+		objeto1.G(j).set_x((*it)[0] + t[0]);objeto1.G(j).set_y((*it)[1] + t[1]);objeto1.G(j).set_z((*it)[2] + t[2]);
+		objeto1.G(j).set_nx((*it)[3] + t[0]);objeto1.G(j).set_ny((*it)[4] + t[1]);objeto1.G(j).set_nz((*it)[5] + t[2]);
+
+		++j;
+	}
+
+	delete(centA);
+	delete(centB);
+
+}
+
 // ICP ponto a  ponto
 
 void ICPPointPoint(CHE_L0 malha1, CHE_L0 malha2, float threshold){
@@ -788,8 +822,6 @@ void ICPPointPoint(CHE_L0 malha1, CHE_L0 malha2, float threshold){
 	if(!root){
 		root = CHEkdtree(malha2);
 	}
-
-
 
 	vector<float*> MeshA = vector<float*>();
 	MeshA = vectorDataICP(malha1, malha1.nvert());
@@ -847,6 +879,9 @@ void ICPPointPoint(CHE_L0 malha1, CHE_L0 malha2, float threshold){
 		if (abs(preverror - error) < threshold){
 			target = true;
 		}
+
+		delete(centA);
+		delete(centB);
 	}
 	delete(NewMesh);
 	delete(MatchMesh);
@@ -910,6 +945,9 @@ void ICPPointPlane(CHE_L0 malha1, CHE_L0 malha2, float threshold){
 		if (abs(preverror - error) < threshold){
 			target = true;
 		}
+
+		delete(centA);
+		delete(centB);
 	}
 	delete(NewMesh);
 	delete(MatchMesh);
