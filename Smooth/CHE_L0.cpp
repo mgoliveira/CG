@@ -621,7 +621,7 @@ void CHE_L0::read_ply( const char* file )
   compute_normals(); cout << endl;
 
   bounding_box  ( min, max);
- // legalize_model( min, max);
+ legalize_model( min, max);
 }
 /*--------------------------------------------------------------------------*/
 

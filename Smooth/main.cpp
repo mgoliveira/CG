@@ -19,7 +19,7 @@ int main(int argc, char *argv[]) {
     glutInitDisplayMode (GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
     glutInitWindowSize(640,480);
     glutInitWindowPosition(100,100);
-    glutCreateWindow("Surface Registration");
+    glutCreateWindow("Implicit Laplacian Smoothing");
     glutDisplayFunc(display);
     glutKeyboardFunc(keyboard);
     glutMotionFunc(motion);

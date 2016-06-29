@@ -37,8 +37,10 @@ public:
 	void scale_volume(float, float);
 	vector<float> edgeWeightLGT(Vid);
 	float vertexWeightCOTG(Vid );
-	void laplacianSmooth();
+	void laplacianSmooth(float, float);
 	float* umbrella(Vid );
+	float gaussianCurvature(Vid);
+	float meanCurvature(Vid);
 	float meancurvature();
 
 public:
